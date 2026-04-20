@@ -82,3 +82,11 @@ Assign these four children to the **Ground Points** array in the inspector.
 4.  **Feedback**: 
     *   Assign a **Particle System** as a child of the pad for visual effects.
     *   Assign a **Sound Clip** for the boost "whoosh" effect.
+
+## 9. Magnetic Adhesion Tuning
+
+The kart implements "Magnetic Adhesion" which scales physics forces based on speed to ensure stability on extreme tracks.
+
+*   **Adhesion Strength**: `1.0 - 2.5`. Higher values make the kart feel "heavy" and "glued" to the track at high speeds. Essential for loops.
+*   **Grip Speed Factor**: `0.02 - 0.1`. Controls how much extra cornering grip you get as you speed up. Helps prevent sliding off narrow curves.
+*   **Max Raycast Distance**: `5.0 - 10.0`. If you find the kart detaches on sharp concave bumps, increase this to "search" for the track from further away.

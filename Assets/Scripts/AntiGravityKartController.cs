@@ -30,6 +30,11 @@ public class AntiGravityKartController : MonoBehaviour
     [SerializeField] private float maxBoost = 2.0f;
     [SerializeField] private float boostForce = 100f;
 
+    [Header("Adhesion & Grip Settings")]
+    [SerializeField] private float adhesionStrength = 1.5f; // Extra gravity based on speed
+    [SerializeField] private float gripSpeedFactor = 0.05f; // Extra lateral grip based on speed
+    [SerializeField] private float maxRaycastDistance = 5.0f;
+
     [Header("Refinement Settings")]
     [SerializeField] private Transform[] groundPoints; // Positions (e.g. 4 corners) to cast rays from
 
@@ -127,6 +132,7 @@ public class AntiGravityKartController : MonoBehaviour
 
     /// <summary>
     /// Detects the surface by averaging raycasts from multiple points.
+    /// Uses dynamic distance to stay glued at high speeds.
     /// </summary>
     private void HandleSurfaceDetection()
     {
@@ -137,7 +143,7 @@ public class AntiGravityKartController : MonoBehaviour
         foreach (Transform point in groundPoints)
         {
             RaycastHit hit;
-            if (Physics.Raycast(point.position, -transform.up, out hit, groundCheckDistance, trackLayer))
+            if (Physics.Raycast(point.position, -transform.up, out hit, maxRaycastDistance, trackLayer))
             {
                 averageNormal += hit.normal;
                 totalHitDistance += hit.distance;
@@ -153,7 +159,11 @@ public class AntiGravityKartController : MonoBehaviour
 
             // Maintain hover height
             float heightError = hoverHeight - averageDistance;
-            float liftForce = heightError * hoverSnappiness;
+            
+            // Magnetic Snapping: Increase hover strength at speed to prevent detachment
+            float speedMultiplier = 1f + (rb.velocity.magnitude * 0.02f);
+            float liftForce = heightError * hoverSnappiness * speedMultiplier;
+            
             float verticalVelocity = Vector3.Dot(rb.velocity, transform.up);
             liftForce -= verticalVelocity * 2f; 
 
@@ -176,7 +186,6 @@ public class AntiGravityKartController : MonoBehaviour
         float speedFactor = Mathf.Clamp01(rb.velocity.magnitude / 10f);
         float multiplier = isDrifting ? driftTurningMultiplier : 1.0f;
         
-        // If drifting, we force the turn in the drift direction for arcade feel
         float finalHorizontalInput = isDrifting ? driftDirection : horizontalInput;
         float rotationAmount = finalHorizontalInput * steeringSensitivity * speedFactor * multiplier;
         
@@ -196,20 +205,25 @@ public class AntiGravityKartController : MonoBehaviour
     }
 
     /// <summary>
-    /// Cancels out lateral velocity to simulate "grip". Reduced while drifting to allow sliding.
+    /// Cancels out lateral velocity to simulate "grip". Scales with speed for stability.
     /// </summary>
     private void HandleLateralGrip()
     {
         float currentGrip = isDrifting ? driftGripAmount : normalGripAmount;
-        Vector3 lateralVelocity = Vector3.Project(rb.velocity, transform.right);
         
-        // Apply counter-force to reduce side-sliding
+        // Magnetic Adhesion: Increase grip at higher speeds to handle curves
+        currentGrip *= (1f + (rb.velocity.magnitude * gripSpeedFactor));
+
+        Vector3 lateralVelocity = Vector3.Project(rb.velocity, transform.right);
         rb.AddForce(-lateralVelocity * currentGrip, ForceMode.Acceleration);
     }
 
     private void ApplyAntiGravity()
     {
-        Vector3 customGravity = -surfaceNormal * gravityForce;
+        // Magnetic Adhesion: Pull harder at high speed to stay on track
+        float customGravityStrength = gravityForce + (rb.velocity.magnitude * adhesionStrength);
+        Vector3 customGravity = -surfaceNormal * customGravityStrength;
+        
         rb.AddForce(customGravity, ForceMode.Acceleration);
     }
 
