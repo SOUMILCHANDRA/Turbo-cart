@@ -47,3 +47,15 @@ Assign these four children to the **Ground Points** array in the inspector.
 *   **Kart is jittering**: Increase the number of `GroundPoints` and ensure `Hover Snappiness` isn't too high.
 *   **Kart flies off loops**: Increase `Gravity Force` or `Ground Check Distance`.
 *   **Kart doesn't move**: Ensure the `Track` layer is correctly assigned and the rays are hitting something.
+
+## 5. Camera Setup
+
+1.  **Main Camera**: 
+    *   Find the **Main Camera** in your scene.
+    *   Add the **AntiGravityCamera** component.
+    *   Assign your **Kart** GameObject to the **Target** field.
+2.  **Tuning**:
+    *   **Distance**: `6 - 10` is standard.
+    *   **Height**: `2 - 4` provides a clear view.
+    *   **Smooth Speed**: `10 - 15` for a responsive but cinematic feel.
+    *   **Rotation Smoothness**: `5 - 10`. Lower values add more "lag" and cinematic weight.
