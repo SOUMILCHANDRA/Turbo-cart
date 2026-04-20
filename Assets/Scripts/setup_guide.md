@@ -73,3 +73,12 @@ Assign these four children to the **Ground Points** array in the inspector.
 *   **Drift Grip Amount**: `1.0 - 4.0`. Lower means more lateral sliding (traditional drift).
 *   **Normal Grip Amount**: `8.0 - 15.0`. Controls how much the kart "sticks" to the track normally.
 *   **Boost Force**: `50 - 150`. Controls the strength of the burst on release.
+
+## 8. Boost Pads
+
+1.  **Create Pad**: Create a 3D object (cube/plane) and set it flush with the track.
+2.  **Script**: Add the `BoostPad` component.
+3.  **Collider**: Ensure it has a **Box Collider** (the script will automatically set it to `Is Trigger`).
+4.  **Feedback**: 
+    *   Assign a **Particle System** as a child of the pad for visual effects.
+    *   Assign a **Sound Clip** for the boost "whoosh" effect.

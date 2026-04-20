@@ -39,10 +39,12 @@ public class AntiGravityKartController : MonoBehaviour
     private bool isGrounded;
     private Vector3 surfaceNormal = Vector3.up;
 
-    // Drift State
+    // Boost State
     private bool isDrifting;
     private float currentBoost;
-    private float driftDirection; // -1 for left, 1 for right
+    private float driftDirection; 
+    private float externalBoostTimer;
+    private float externalBoostMultiplier = 1.0f;
 
     private void Awake()
     {
@@ -213,9 +215,20 @@ public class AntiGravityKartController : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (rb.velocity.magnitude < maxSpeed)
+        // Apply temporary boost multiplier
+        float effectiveMaxSpeed = maxSpeed;
+        float effectiveAcceleration = acceleration;
+
+        if (externalBoostTimer > 0)
         {
-            Vector3 driveForce = transform.forward * verticalInput * acceleration;
+            effectiveMaxSpeed *= externalBoostMultiplier;
+            effectiveAcceleration *= externalBoostMultiplier;
+            externalBoostTimer -= Time.fixedDeltaTime;
+        }
+
+        if (rb.velocity.magnitude < effectiveMaxSpeed)
+        {
+            Vector3 driveForce = transform.forward * verticalInput * effectiveAcceleration;
             rb.AddForce(driveForce, ForceMode.Acceleration);
         }
 
@@ -227,6 +240,18 @@ public class AntiGravityKartController : MonoBehaviour
         {
             rb.drag = dragBase;
         }
+    }
+
+    /// <summary>
+    /// Applies a temporary speed and acceleration boost from external sources like boost pads.
+    /// </summary>
+    public void ApplyExternalBoost(float multiplier, float duration)
+    {
+        externalBoostMultiplier = multiplier;
+        externalBoostTimer = duration;
+        
+        // Immediate velocity burst for "kick" feel
+        rb.AddForce(transform.forward * multiplier * 10f, ForceMode.VelocityChange);
     }
 
     private void ApplyAirLogic()
