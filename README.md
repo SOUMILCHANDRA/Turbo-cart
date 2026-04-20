@@ -7,10 +7,10 @@ A professional-grade, Rigidbody-based anti-gravity racing system for Unity 3D. D
 
 ## 🚀 Key Features
 
-- **Modular Track Builder**: An editor tool for snapping track segments together with automated alignment, supporting loops, vertical walls, and jumps.
-- **Magnetic Adhesion Physics**: Dynamic downforce and grip that scales with speed, ensuring the kart stays "glued" to the track even on extreme inverted geometry.
-- **Multi-Point Surface Detection**: Average normal calculation using multiple raycast points to prevent jitter on sharp edges or bumps.
-- **Smooth Cinematic Camera**: A custom third-person camera that aligns with the kart's orientation to handle loops without flipping or gimbal lock.
+- **Scalable Architecture**: Decoupled systems for Physics, Movement, and Input, allowing for easy expansion to multiplayer or AI-driven karts.
+- **ScriptableObject Tuning**: All physical parameters are stored in `KartSettings` assets, enabling rapid prototyping of different kart classes without code changes.
+- **Interface-Based Input**: Abstracted input system (`IKartInput`) to support keyboard, gamepads, and network-synced inputs.
+- **Modular Track Builder**: An editor tool for snapping track segments together with automated alignment.
 - **Drift & Boost System**: Drift mechanics with side-slip physics, allowing for high-speed cornering and a visualizable boost charge system.
 - **Modular Boost Pads**: Reusable track elements to temporarily enhance speed and acceleration with integrated particle and audio feedback.
 - **Hover Suspension**: Spring-damper hover logic for a satisfying, futuristic racing feel.

@@ -26,7 +26,7 @@ public class BoostPad : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Check if the object entering is a kart
-        AntiGravityKartController kart = other.GetComponentInParent<AntiGravityKartController>();
+        KartController kart = other.GetComponentInParent<KartController>();
         
         if (kart != null)
         {
@@ -34,7 +34,7 @@ public class BoostPad : MonoBehaviour
         }
     }
 
-    private void ApplyBoost(AntiGravityKartController kart)
+    private void ApplyBoost(KartController kart)
     {
         // Apply the logic to the kart
         kart.ApplyExternalBoost(speedMultiplier, duration);
