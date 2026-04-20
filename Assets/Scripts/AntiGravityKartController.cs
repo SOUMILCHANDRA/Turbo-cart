@@ -22,6 +22,14 @@ public class AntiGravityKartController : MonoBehaviour
     [SerializeField] private float rotationSmoothness = 10f;
     [SerializeField] private LayerMask trackLayer;
 
+    [Header("Drift & Boost Settings")]
+    [SerializeField] private float driftTurningMultiplier = 2.0f;
+    [SerializeField] private float driftGripAmount = 2.0f; // Lower means more sliding
+    [SerializeField] private float normalGripAmount = 10.0f;
+    [SerializeField] private float boostChargeRate = 0.5f;
+    [SerializeField] private float maxBoost = 2.0f;
+    [SerializeField] private float boostForce = 100f;
+
     [Header("Refinement Settings")]
     [SerializeField] private Transform[] groundPoints; // Positions (e.g. 4 corners) to cast rays from
 
@@ -30,6 +38,11 @@ public class AntiGravityKartController : MonoBehaviour
     private float verticalInput;
     private bool isGrounded;
     private Vector3 surfaceNormal = Vector3.up;
+
+    // Drift State
+    private bool isDrifting;
+    private float currentBoost;
+    private float driftDirection; // -1 for left, 1 for right
 
     private void Awake()
     {
@@ -53,6 +66,8 @@ public class AntiGravityKartController : MonoBehaviour
         // Get user input in Update for better responsiveness
         horizontalInput = Input.GetAxis("Horizontal");
         verticalInput = Input.GetAxis("Vertical");
+
+        HandleDriftInput();
     }
 
     private void FixedUpdate()
@@ -63,7 +78,12 @@ public class AntiGravityKartController : MonoBehaviour
         if (isGrounded)
         {
             HandleMovement();
-            // Steering is now part of the rotation calculation
+            HandleLateralGrip();
+            
+            if (isDrifting)
+            {
+                currentBoost = Mathf.MoveTowards(currentBoost, maxBoost, boostChargeRate * Time.fixedDeltaTime);
+            }
         }
         else
         {
@@ -74,9 +94,37 @@ public class AntiGravityKartController : MonoBehaviour
         UpdateOrientation();
     }
 
+    private void HandleDriftInput()
+    {
+        // Start drifting
+        if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded && Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            isDrifting = true;
+            driftDirection = Mathf.Sign(horizontalInput);
+            currentBoost = 0f;
+        }
+
+        // Release drift / Apply Boost
+        if (Input.GetKeyUp(KeyCode.LeftShift) && isDrifting)
+        {
+            ApplyBoost();
+            isDrifting = false;
+        }
+    }
+
+    private void ApplyBoost()
+    {
+        if (currentBoost > 0.5f) // Minimum charge to boost
+        {
+            float totalBoost = currentBoost * boostForce;
+            rb.AddForce(transform.forward * totalBoost, ForceMode.VelocityChange);
+            Debug.Log($"Boost Released! Charge: {currentBoost:F2}");
+        }
+        currentBoost = 0f;
+    }
+
     /// <summary>
     /// Detects the surface by averaging raycasts from multiple points.
-    /// This prevents jitter when passing over edges or small bumps.
     /// </summary>
     private void HandleSurfaceDetection()
     {
@@ -101,11 +149,9 @@ public class AntiGravityKartController : MonoBehaviour
             surfaceNormal = (averageNormal / hitCount).normalized;
             float averageDistance = totalHitDistance / hitCount;
 
-            // Maintain hover height using a spring-like force
+            // Maintain hover height
             float heightError = hoverHeight - averageDistance;
             float liftForce = heightError * hoverSnappiness;
-            
-            // Dampen vertical velocity relative to local up
             float verticalVelocity = Vector3.Dot(rb.velocity, transform.up);
             liftForce -= verticalVelocity * 2f; 
 
@@ -114,23 +160,27 @@ public class AntiGravityKartController : MonoBehaviour
         else
         {
             isGrounded = false;
-            // Gradually tilt back to "up" if in the air
+            isDrifting = false;
             surfaceNormal = Vector3.Lerp(surfaceNormal, Vector3.up, Time.fixedDeltaTime);
         }
     }
 
     /// <summary>
-    /// Updates the kart's rotation to align with the surface normal and respond to steering.
+    /// Updates the kart's rotation to align with the surface normal and respond to steering/drifting.
     /// </summary>
     private void UpdateOrientation()
     {
-        // 1. Handle Steering (rotate around local UP axis)
+        // 1. Handle Steering
         float speedFactor = Mathf.Clamp01(rb.velocity.magnitude / 10f);
-        float rotationAmount = horizontalInput * steeringSensitivity * speedFactor;
+        float multiplier = isDrifting ? driftTurningMultiplier : 1.0f;
+        
+        // If drifting, we force the turn in the drift direction for arcade feel
+        float finalHorizontalInput = isDrifting ? driftDirection : horizontalInput;
+        float rotationAmount = finalHorizontalInput * steeringSensitivity * speedFactor * multiplier;
+        
         Quaternion turnRotation = Quaternion.Euler(0f, rotationAmount, 0f);
 
         // 2. Align to Surface Normal
-        // We first apply the steering to our current forward, then project onto surface
         Vector3 combinedForward = transform.rotation * turnRotation * Vector3.forward;
         Vector3 projectedForward = Vector3.ProjectOnPlane(combinedForward, surfaceNormal);
         
@@ -139,34 +189,39 @@ public class AntiGravityKartController : MonoBehaviour
 
         Quaternion targetRotation = Quaternion.LookRotation(projectedForward, surfaceNormal);
         
-        // 3. Smoothly interpolate to the target
+        // 3. Smoothly interpolate
         rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSmoothness * Time.fixedDeltaTime));
     }
 
     /// <summary>
-    /// Applies gravity towards the surface normal.
+    /// Cancels out lateral velocity to simulate "grip". Reduced while drifting to allow sliding.
     /// </summary>
+    private void HandleLateralGrip()
+    {
+        float currentGrip = isDrifting ? driftGripAmount : normalGripAmount;
+        Vector3 lateralVelocity = Vector3.Project(rb.velocity, transform.right);
+        
+        // Apply counter-force to reduce side-sliding
+        rb.AddForce(-lateralVelocity * currentGrip, ForceMode.Acceleration);
+    }
+
     private void ApplyAntiGravity()
     {
-        // Gravity is applied in the opposite direction of the surface normal
         Vector3 customGravity = -surfaceNormal * gravityForce;
         rb.AddForce(customGravity, ForceMode.Acceleration);
     }
 
     private void HandleMovement()
     {
-        // Limit speed
         if (rb.velocity.magnitude < maxSpeed)
         {
-            // Apply forward/backward force
             Vector3 driveForce = transform.forward * verticalInput * acceleration;
             rb.AddForce(driveForce, ForceMode.Acceleration);
         }
 
-        // Apply braking
         if (verticalInput == 0 && rb.velocity.magnitude > 0.1f)
         {
-            rb.drag = dragBase * 2; // Increase drag when not accelerating
+            rb.drag = dragBase * 2;
         }
         else
         {
@@ -176,18 +231,19 @@ public class AntiGravityKartController : MonoBehaviour
 
     private void ApplyAirLogic()
     {
-        // In the air, we might want to allow some air control or just fall
-        // For anti-gravity games, we usually want to search for the track more aggressively
-        rb.drag = dragBase * 0.1f; // Less drag in air
+        rb.drag = dragBase * 0.1f;
     }
 
     private void OnDrawGizmos()
     {
-        // Debug visualization for the raycast
         Gizmos.color = isGrounded ? Color.green : Color.red;
         Gizmos.DrawRay(transform.position, -transform.up * groundCheckDistance);
         
-        Gizmos.color = Color.blue;
-        Gizmos.DrawRay(transform.position, surfaceNormal * 2f);
+        // Visualize boost charge
+        if (isDrifting)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position + transform.up * 2f, currentBoost * 0.5f);
+        }
     }
 }

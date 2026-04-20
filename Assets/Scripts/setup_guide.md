@@ -59,3 +59,17 @@ Assign these four children to the **Ground Points** array in the inspector.
     *   **Height**: `2 - 4` provides a clear view.
     *   **Smooth Speed**: `10 - 15` for a responsive but cinematic feel.
     *   **Rotation Smoothness**: `5 - 10`. Lower values add more "lag" and cinematic weight.
+
+## 6. Controls
+
+*   **Accelerate/Reverse**: `W / S` or `Up / Down Arrow`
+*   **Steer**: `A / D` or `Left / Right Arrow`
+*   **Drift (Hold)**: `Left Shift` (requires turning)
+*   **Boost (Release)**: Release `Left Shift` after drifting to gain speed.
+
+## 7. Drift & Boost Tuning
+
+*   **Drift Turning Multiplier**: `1.5 - 2.5`. Higher means sharper turns while drifting.
+*   **Drift Grip Amount**: `1.0 - 4.0`. Lower means more lateral sliding (traditional drift).
+*   **Normal Grip Amount**: `8.0 - 15.0`. Controls how much the kart "sticks" to the track normally.
+*   **Boost Force**: `50 - 150`. Controls the strength of the burst on release.
