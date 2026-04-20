@@ -90,3 +90,21 @@ The kart implements "Magnetic Adhesion" which scales physics forces based on spe
 *   **Adhesion Strength**: `1.0 - 2.5`. Higher values make the kart feel "heavy" and "glued" to the track at high speeds. Essential for loops.
 *   **Grip Speed Factor**: `0.02 - 0.1`. Controls how much extra cornering grip you get as you speed up. Helps prevent sliding off narrow curves.
 *   **Max Raycast Distance**: `5.0 - 10.0`. If you find the kart detaches on sharp concave bumps, increase this to "search" for the track from further away.
+
+## 10. Modular Track Building
+
+The project includes a rapid-prototyping system for modular tracks.
+
+1.  **Preparation**:
+    *   Create your track piece models (straight, 90-deg curve, loop).
+    *   Ensure the **Pivot Point** is at the "Entrance" of the piece.
+    *   Add the `TrackPiece` component to the prefab.
+    *   Create an empty child object named `ExitPoint` and place it at the "End" of the track piece. Align its **Z-axis (forward)** to point where the next piece should go.
+2.  **Building**:
+    *   Select a `TrackPiece` in your scene.
+    *   In the Inspector, you will see the **Rapid Builder** section.
+    *   Drag another track prefab into the **Next Piece Prefab** slot.
+    *   Click **Append Next Piece**. The new piece will automatically snap and align to the exit point.
+3.  **Complex Geometry**:
+    *   For loops, ensure the `ExitPoint` of the vertical piece is tilted 90 degrees up.
+    *   The `AntiGravityKartController` will automatically follow the normals through the modular joins if they are aligned correctly.

@@ -7,6 +7,7 @@ A professional-grade, Rigidbody-based anti-gravity racing system for Unity 3D. D
 
 ## 🚀 Key Features
 
+- **Modular Track Builder**: An editor tool for snapping track segments together with automated alignment, supporting loops, vertical walls, and jumps.
 - **Magnetic Adhesion Physics**: Dynamic downforce and grip that scales with speed, ensuring the kart stays "glued" to the track even on extreme inverted geometry.
 - **Multi-Point Surface Detection**: Average normal calculation using multiple raycast points to prevent jitter on sharp edges or bumps.
 - **Smooth Cinematic Camera**: A custom third-person camera that aligns with the kart's orientation to handle loops without flipping or gimbal lock.
