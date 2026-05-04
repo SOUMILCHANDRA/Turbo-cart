@@ -49,3 +49,7 @@ A professional-grade, Rigidbody-based anti-gravity racing system for Unity 3D. D
 ## 📜 License
 
 This project is designed for arcade racing enthusiasts and developers. Feel free to use and modify it for your futuristic racing projects!
+
+## AUTHOR
+
+Soumil Chandra
